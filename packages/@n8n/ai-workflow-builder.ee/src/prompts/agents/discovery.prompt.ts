@@ -277,8 +277,19 @@ const CODE_NODE_ALTERNATIVES = `CRITICAL: Prefer native n8n nodes over Code node
 - Text extraction or parsing (use Edit Fields with expressions)
 - Logging using console.log unless user explicitly asks - only useful for debugging, not production`;
 
+const MODEL_VALIDATION_GUIDE = `When user specifies a model name (e.g., 'gpt-4.1-mini', 'claude-sonnet-4', 'gemini-pro'):
+1. ALWAYS call validate_model_name first to identify the provider
+2. If provider is detected (not 'unknown'), use it to search for the correct Chat Model node:
+   - openai → search for "OpenAI Chat Model"
+   - anthropic → search for "Anthropic Chat Model"
+   - google → search for "Google Gemini Chat Model"
+   - mistral → search for "Mistral Cloud Chat Model"
+3. If status is 'likely_invalid', include the suggestions in your reasoning
+4. ONLY if provider is 'unknown': use your knowledge to infer the provider (e.g., 'command-r' is Cohere, 'davinci' is OpenAI) and search for that provider's Chat Model`;
+
 const CRITICAL_RULES = `- NEVER ask clarifying questions
 - ALWAYS call get_best_practices first
+- When user specifies a model name, call validate_model_name to detect provider and validate
 - THEN Call search_nodes to learn about available nodes and their inputs and outputs
 - FINALLY call get_node_details IN PARALLEL for speed to get more details about RELVANT node
 - ALWAYS extract version number from <version> tag in node details
@@ -286,7 +297,6 @@ const CRITICAL_RULES = `- NEVER ask clarifying questions
 - ONLY flag connectionChangingParameters if they appear in <input> or <output> expressions
 - If no parameters appear in connection expressions, return empty array []
 - Output ONLY: nodesFound with {{ nodeName, version, reasoning, connectionChangingParameters }}
-- When user specifies a model name (e.g., 'gpt-4.1-mini') try to use this if it is a valid option
 - PREFER native n8n nodes (especially Edit Fields) over Code node`;
 
 const RESTRICTIONS = `- Output text commentary between tool calls
@@ -301,6 +311,7 @@ function generateAvailableToolsList(options: DiscoveryPromptOptions): string {
 		'- get_best_practices: Retrieve best practices (internal context)',
 		'- search_nodes: Find n8n nodes by keyword',
 		'- get_node_details: Get complete node information including <connections>',
+		'- validate_model_name: Validate LLM model names and detect their provider (OpenAI, Anthropic, etc.)',
 	];
 
 	if (includeExamples) {
@@ -354,6 +365,7 @@ export function buildDiscoveryPrompt(options: DiscoveryPromptOptions): string {
 		.section('dynamic_output_nodes', DYNAMIC_OUTPUT_NODES)
 		.section('sub_nodes_searches', SUB_NODES_SEARCHES)
 		.section('structured_output_parser', STRUCTURED_OUTPUT_PARSER)
+		.section('model_validation_guide', MODEL_VALIDATION_GUIDE)
 		.section('critical_rules', CRITICAL_RULES)
 		.section('do_not', RESTRICTIONS)
 		.build();

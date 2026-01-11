@@ -9,10 +9,10 @@ Embedding nodes (nodes with "embeddings" in their type name) MUST use embedding 
 
 ### Common Mistake to Avoid
 NEVER configure an embedding node with chat models like:
-- gpt-4, gpt-4o, gpt-4o-mini, gpt-3.5-turbo (OpenAI chat models)
-- claude-3-opus, claude-3-sonnet (Anthropic chat models)
-- gemini-pro, gemini-1.5-pro (Google chat models)
-- llama-3, mixtral (general LLM models)
+- gpt-4, gpt-4o, gpt-4o-mini, gpt-4.1, gpt-4.1-mini, gpt-3.5-turbo, o1, o1-mini, o3, o3-mini, o4-mini (OpenAI chat/reasoning models)
+- claude-3-opus, claude-3-sonnet, claude-3.5-sonnet, claude-3.5-haiku, claude-sonnet-4, claude-opus-4 (Anthropic chat models)
+- gemini-pro, gemini-1.5-pro, gemini-1.5-flash, gemini-2.0-pro, gemini-2.0-flash (Google chat models)
+- llama-3, llama-3.1, llama-3.2, llama-3.3, llama-4, mixtral, mistral-large (general LLM models)
 
 These are language/chat models designed for text generation, NOT for creating embeddings.
 
@@ -57,7 +57,7 @@ Embedding model names typically contain:
 
 ### Key Rules
 1. ALWAYS check if the node type contains "embeddings" - if so, use an embedding model
-2. If the user mentions a chat model (gpt-4, claude, gemini-pro, etc.) for embeddings, do NOT use it
+2. If the user mentions a chat model (gpt-4, gpt-4.1, o1, o3, claude, gemini, etc.) for embeddings, do NOT use it
 3. Suggest the appropriate embedding model from the same provider instead
 4. When in doubt, use the provider's default embedding model
 

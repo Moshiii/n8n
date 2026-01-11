@@ -23,6 +23,7 @@ import { createGetBestPracticesTool } from '../tools/get-best-practices.tool';
 import { createGetWorkflowExamplesTool } from '../tools/get-workflow-examples.tool';
 import { createNodeDetailsTool } from '../tools/node-details.tool';
 import { createNodeSearchTool } from '../tools/node-search.tool';
+import { createValidateModelNameTool } from '../tools/validate-model-name.tool';
 import type { CoordinationLogEntry } from '../types/coordination';
 import { createDiscoveryMetadata } from '../types/coordination';
 import type { WorkflowMetadata } from '../types/tools';
@@ -143,6 +144,7 @@ export class DiscoverySubgraph extends BaseSubgraph<
 			createGetBestPracticesTool(),
 			createNodeSearchTool(config.parsedNodeTypes),
 			createNodeDetailsTool(config.parsedNodeTypes, config.logger),
+			createValidateModelNameTool(),
 		];
 
 		// Conditionally add workflow examples tool if feature flag is enabled
