@@ -1,0 +1,14 @@
+# Simple wrapper to use official n8n image with Railway PORT support
+FROM docker.n8n.io/n8nio/n8n:latest
+
+# Create a wrapper script to map Railway's PORT to N8N_PORT
+# The official image uses: ENTRYPOINT ["tini", "--", "/docker-entrypoint.sh"]
+# We preserve that structure but add PORT mapping
+RUN echo '#!/bin/sh\n\
+if [ -n "$PORT" ] && [ -z "$N8N_PORT" ]; then\n\
+  export N8N_PORT="$PORT"\n\
+fi\n\
+exec tini -- /docker-entrypoint.sh "$@"' > /railway-entrypoint.sh && \
+    chmod +x /railway-entrypoint.sh
+
+ENTRYPOINT ["/railway-entrypoint.sh"]

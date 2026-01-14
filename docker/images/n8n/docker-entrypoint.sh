@@ -6,6 +6,11 @@ if [ -d /opt/custom-certificates ]; then
   c_rehash /opt/custom-certificates
 fi
 
+# Map Railway's PORT environment variable to N8N_PORT if N8N_PORT is not set
+if [ -n "$PORT" ] && [ -z "$N8N_PORT" ]; then
+  export N8N_PORT="$PORT"
+fi
+
 if [ "$#" -gt 0 ]; then
   # Got started with arguments
   exec n8n "$@"
