@@ -51,7 +51,41 @@ Railway will automatically set the `PORT` environment variable. The entrypoint s
 - `N8N_BASIC_AUTH_PASSWORD` - Basic auth password
 - `N8N_USER_MANAGEMENT_DISABLED` - Set to `false` to enable user management
 
-### 3. Add a Database (Recommended for Production)
+### 3. Configure Data Persistence (CRITICAL!)
+
+**⚠️ IMPORTANT: Data Persistence is Essential**
+
+n8n stores all your important data in `/home/node/.n8n` directory, including:
+- **Workflows** (工作流)
+- **Credentials** (API keys, passwords, etc.)
+- **Encryption Key** (加密密钥 - 如果丢失，所有凭证将无法解密！)
+- **Database** (SQLite database if not using PostgreSQL)
+- **Configuration files** (配置文件)
+- **Binary data** (二进制数据，默认存储在 `/home/node/.n8n/binaryData`)
+
+**Without persistent storage, all your data will be lost when:**
+- Docker container is updated/redeployed
+- Railway service is restarted
+- Container crashes
+
+**Railway Persistent Volumes:**
+
+1. In Railway dashboard, go to your n8n service
+2. Click on "Settings" → "Volumes"
+3. Click "Add Volume"
+4. Configure the volume:
+   - **Mount Path**: `/home/node/.n8n`
+   - **Size**: At least 1GB (recommended: 5GB+ for production)
+5. Click "Add"
+
+This ensures your data persists across deployments and updates.
+
+**Alternative: Use PostgreSQL for Database**
+
+Even with PostgreSQL, you still need to persist `/home/node/.n8n` because it contains:
+- Encryption key (required to decrypt credentials)
+- Configuration files
+- Binary data (if using filesystem mode)
 
 For production deployments, it's recommended to use PostgreSQL:
 
@@ -64,6 +98,8 @@ For production deployments, it's recommended to use PostgreSQL:
    - `DB_POSTGRESDB_USER=${{Postgres.PGUSER}}`
    - `DB_POSTGRESDB_PASSWORD=${{Postgres.PGPASSWORD}}`
    - `DB_POSTGRESDB_PORT=${{Postgres.PGPORT}}`
+
+**Note:** Even with PostgreSQL, you still need the `/home/node/.n8n` volume mounted!
 
 ### 4. Deploy
 
@@ -136,9 +172,56 @@ The `Dockerfile.railway` is a simple wrapper that:
 - [n8n Documentation](https://docs.n8n.io)
 - [n8n Environment Variables](https://docs.n8n.io/hosting/configuration/environment-variables/)
 
+## Data Persistence (数据持久化)
+
+### Why Data Persistence is Critical
+
+n8n stores critical data in `/home/node/.n8n`:
+- **Workflows** - All your automation workflows
+- **Credentials** - API keys, passwords, tokens (encrypted)
+- **Encryption Key** - Used to encrypt/decrypt credentials
+- **Database** - SQLite database (if not using PostgreSQL)
+- **Binary Data** - Files uploaded/processed by workflows (stored in `/home/node/.n8n/binaryData`)
+
+### What Happens Without Persistence?
+
+If you don't mount a persistent volume:
+- ❌ All workflows will be lost on container restart/update
+- ❌ All API keys and credentials will be lost
+- ❌ Encryption key will be regenerated, making old credentials unrecoverable
+- ❌ All execution history will be lost
+- ❌ Binary files will be lost
+
+### Railway Volume Configuration
+
+**Required Volume Mount:**
+```
+Mount Path: /home/node/.n8n
+Size: Minimum 1GB (5GB+ recommended for production)
+```
+
+**Optional: Custom Binary Data Path**
+
+If you want to store binary data separately, you can:
+1. Set environment variable: `N8N_BINARY_DATA_STORAGE_PATH=/home/node/n8ndata`
+2. Mount an additional volume at `/home/node/n8ndata`
+
+However, the main `/home/node/.n8n` volume is still required for other data.
+
+### Reference: Docker Volume Mounts
+
+If deploying with Docker directly (not Railway), you would use:
+```bash
+docker volume create n8n_data
+docker run -v n8n_data:/home/node/.n8n ...
+```
+
+On Railway, this is handled automatically when you add a volume in the dashboard.
+
 ## Notes
 
 - Deployments are fast since we're using the official pre-built Docker image
 - The wrapper only adds PORT mapping, so it builds in seconds
-- For production, consider using Railway's persistent volumes for data storage
+- **CRITICAL**: Always configure persistent volumes before deploying to production
 - Monitor resource usage in the Railway dashboard
+- Regularly backup your `/home/node/.n8n` volume
